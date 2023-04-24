@@ -8,8 +8,8 @@ class User(AbstractUser):
     is_student = models.BooleanField('student status', default=False)
     is_coach = models.BooleanField('coach status', default=False)
 
-    my_games = models.ManyToManyField(Pgn, related_name='user_mygames')
-    assigned = models.ManyToManyField(Pgn, related_name='user_assigned')
+    my_games = models.ManyToManyField(Pgn, related_name='user_mygames', blank=True)
+    assigned = models.ManyToManyField(Pgn, related_name='user_assigned', blank=True)
     pgn_favorites = models.ManyToManyField(Pgn, through='PgnFavorites', related_name='favorite_users')
  
 class PgnFavorites(models.Model):

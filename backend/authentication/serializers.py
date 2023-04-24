@@ -36,27 +36,29 @@ class RegistrationSerializer(serializers.ModelSerializer):
                   'first_name', 'last_name', 'is_student', 'is_coach', 'my_games', 'assigned', 'pgn_favorites')
 
     def create(self, validated_data):
+        assigned = validated_data.pop('assigned', [])
+        my_games = validated_data.pop('my_games', [])
+        pgn_favorites = validated_data.pop('pgn_favorites', [])
 
         user = User.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            is_student=validated_data['is_student'],
-            is_coach=validated_data['is_coach'],
-            my_games=validated_data['my_games'],
-            assigned=validated_data['assigned'],
-            pgn_favorites=validated_data['pgn_favorites']
-
-            # If added new columns through the User model, add them in this
-            # create method. Example below:
-
-            # is_student=validated_data['is_student']
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            is_student=validated_data.get('is_student', False),
+            is_coach=validated_data.get('is_coach', False),
         )
+
+        user.assigned.set(assigned)
+        user.my_games.set(my_games)
         user.set_password(validated_data['password'])
         user.save()
 
+        # Set pgn_favorites using set() method
+        user.pgn_favorites.set(pgn_favorites)
+
         return user
+
 
 
 # serializer for junction tables

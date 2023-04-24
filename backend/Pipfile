@@ -7,10 +7,10 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
-mysql-connector-python = "*"
 django-cors-headers = "*"
 tzdata = "*"
 chess = "*"
+mysql-connector-python = "==8.0.26"
 
 [dev-packages]
 autopep8 = "*"
