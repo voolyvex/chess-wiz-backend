@@ -1,19 +1,16 @@
 from .models import Pgn
-from .serializers import PgnSerializer, PgnFavoriteSerializer
-from authentication.serializers import UserPgnSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from django.http import Http404
+from .serializers import PgnSerializer, PgnFavoriteSerializer
+from authentication.serializers import UserPgnSerializer
 from authentication.models import User, PgnFavorites
-import re
+from django.shortcuts import get_object_or_404
+from django.http import Http404
 from datetime import datetime
-import logging
-
-logging.basicConfig(filename='example.log',
-                    encoding='utf-8', level=logging.DEBUG)
+import re
 
 
 def parse_date(date_str):
@@ -60,7 +57,6 @@ def parse_pgn(pgn_text):
         game_data["moves"] = moves.strip()
 
     return game_data
-
 
 
 class FetchMyGames(APIView):
@@ -180,7 +176,6 @@ class FetchFavorites(APIView):
         return Response(pgns, status=status.HTTP_200_OK)
 
 
-
 class AddPgnToAssigned(APIView):
     # Record in junction table for Assigned
 
@@ -214,28 +209,7 @@ class AddPgnToMyGames(APIView):
         serializer = UserPgnSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class RemoveOrAddFavorite(APIView):
-
-    # def flipBool(self, pgn, user):
-
-    #     # Toggles the favorite status of a Pgn for a specific user.
-    #     try:
-    #         PgnFavorites.is_favorite = not PgnFavorites.is_favorite
-    #         user.save()
-    #     except PgnFavorites.DoesNotExist:
-    #                 # If a PgnFavorite object for the user doesn't exist,
-    #                 # create one and set is_favorite to True
-    #                 PgnFavorites.objects.create(
-    #                     pgn=pgn, user=user, is_favorite=True)
-
-    #     # Update the favorited_dict field on the Pgn model to reflect the current
-    #     # favorite status for all users.
-    #     favorited_users = PgnFavorites.objects.filter(
-    #         pgn=pgn, is_favorite=True).values_list('user__username', flat=True)
-    #     pgn.favorited_dict = {'users': list(favorited_users)}
-    #     pgn.save()
-
+    # If pgn is in favorites table, flip bool, else set as Favorite
     @permission_classes([IsAuthenticated])
     def patch(self, request, pgn_pk):
         try:
@@ -315,3 +289,53 @@ class FetchPGNbyId(APIView):
         data = serializer.data
         data['is_favorite'] = is_favorite
         return Response(data, status=status.HTTP_200_OK)
+
+
+class DeleteGame(APIView):
+    # Delete a game from the user's feed or database
+
+    @permission_classes([IsAuthenticated])
+    def delete(self, request, pgn_pk):
+        # Retrieve the game
+        pgn = get_object_or_404(Pgn, id=pgn_pk)
+
+        # Check if the game is in the user's MyGames
+        user = request.user
+        if pgn in user.my_games.all():
+            # Remove the game from the user's MyGames
+            user.my_games.remove(pgn)
+            user.save()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # Check if the game is assigned to the user
+        if pgn in user.assigned.all():
+            # Remove the game from the user's assigned games
+            user.assigned.remove(pgn)
+            user.save()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # The game is not in the user's MyGames or assigned games
+        return Response({"error": "You don't have permission to delete this game."},
+                        status=status.HTTP_403_FORBIDDEN)
+    
+    
+class DeleteGamePermanently(APIView):
+    # Permanently delete a game from the database
+
+    @permission_classes([IsAuthenticated])
+    def delete(self, request, pgn_pk):
+        # Retrieve the game
+        pgn = get_object_or_404(Pgn, id=pgn_pk)
+
+        # Check if the game is owned by the user
+        if pgn.created_by == request.user:
+            # Delete the game from the database
+            pgn.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # The user doesn't have permission to delete the game
+        return Response({"error": "You don't have permission to delete this game."},
+                        status=status.HTTP_403_FORBIDDEN)

@@ -21,9 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = False
 
 AUTH_USER_MODEL = 'authentication.User'
 
@@ -43,7 +41,7 @@ INSTALLED_APPS = [
     'pgn.apps.PgnConfig',
     'fen.apps.FenConfig',
     'comment.apps.CommentConfig',
-    
+
 ]
 
 MIDDLEWARE = [
@@ -57,7 +55,22 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000', 'http://127.0.0.1'
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_CREDENTIALS = False
+
+CORS_ALLOW_HEADERS = ['accept',    'accept-encoding',    'authorization',    'content-type',  'dnt',    'origin',    'user-agent',    'x-csrftoken',    'x-requested-with',]
 
 ROOT_URLCONF = 'drf_jwt_backend.urls'
 
