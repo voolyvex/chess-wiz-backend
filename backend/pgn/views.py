@@ -292,7 +292,7 @@ class FetchPGNbyId(APIView):
 
 
 class DeleteGame(APIView):
-    # Delete a game from the user's feed or database
+    # Remove a game from the user's feed 
 
     @permission_classes([IsAuthenticated])
     def delete(self, request, pgn_pk):
@@ -320,7 +320,7 @@ class DeleteGame(APIView):
         return Response({"error": "You don't have permission to delete this game."},
                         status=status.HTTP_403_FORBIDDEN)
     
-    
+
 class DeleteGamePermanently(APIView):
     # Permanently delete a game from the database
 
