@@ -329,13 +329,15 @@ class DeleteGamePermanently(APIView):
         # Retrieve the game
         pgn = get_object_or_404(Pgn, id=pgn_pk)
 
-        # Check if the game is owned by the user
-        if pgn.created_by == request.user:
-            # Delete the game from the database
-            pgn.delete()
+        #TODO: implement flow control to only allow pgn owner to delete. Otherwise return error
 
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        # Check if the game is owned by the user
+        user = request.user
+            # Delete the game from the database
+        pgn.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
         # The user doesn't have permission to delete the game
-        return Response({"error": "You don't have permission to delete this game."},
-                        status=status.HTTP_403_FORBIDDEN)
+        # return Response({"error": "You don't have permission to delete this game."},
+        #                 status=status.HTTP_403_FORBIDDEN)
